@@ -1,0 +1,10 @@
+.env
+config.php
+admin/
+wp-admin/
+api/v1/
+.git/config
+backup.zip
+data.sql
+phpmyadmin/
+dashboard/
