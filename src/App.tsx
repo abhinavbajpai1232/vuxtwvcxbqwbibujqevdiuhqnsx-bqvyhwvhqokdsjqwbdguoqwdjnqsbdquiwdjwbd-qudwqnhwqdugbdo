@@ -740,6 +740,55 @@ export default function App() {
           </div>
         </section>
 
+       import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
+import 'xterm/css/xterm.css';
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3000'); // Check your port
+
+export const TerminalComponent = () => {
+  const terminalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const term = new Terminal({
+      cursorBlink: true,
+      theme: { background: '#000000', foreground: '#00ff00' },
+      fontSize: 14,
+      fontFamily: 'Courier New'
+    });
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+
+    if (terminalRef.current) {
+      term.open(terminalRef.current);
+      fitAddon.fit();
+    }
+
+    // Backend se data lena
+    socket.on("terminal-output", (data) => {
+      term.write(data);
+    });
+
+    // Keys press karne par backend ko bhejna
+    term.onData((data) => {
+      socket.emit("terminal-input", data);
+    });
+
+    return () => { term.dispose(); };
+  }, []);
+
+  return (
+    <div className="mt-8 border-2 border-green-500 rounded-lg overflow-hidden shadow-2xl">
+      <div className="bg-green-900/20 p-2 text-green-500 font-mono text-xs uppercase tracking-widest">
+        SYSTEM_TERMINAL_V1.0
+      </div>
+      <div ref={terminalRef} className="h-96" />
+    </div>
+  );
+};
+       
         {/* Shell Generator Section */}
         <section className="border border-[#141414] bg-white p-8 shadow-[8px_8px_0px_0px_rgba(20,20,20,1)]">
           <h2 className="text-xs font-mono uppercase opacity-50 mb-6 flex items-center gap-2">

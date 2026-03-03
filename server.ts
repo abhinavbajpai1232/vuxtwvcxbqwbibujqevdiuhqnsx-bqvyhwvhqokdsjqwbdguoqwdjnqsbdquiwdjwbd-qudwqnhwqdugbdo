@@ -400,3 +400,35 @@ async function startServer() {
 }
 
 startServer();
+import * as pty from 'node-pty';
+import os from 'os';
+
+// Terminal Logic
+io.on("connection", (socket) => {
+  console.log("[+] Terminal Socket Connected");
+
+  // Agar Windows hai toh powershell, varna bash
+  const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+  
+  const ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 80,
+    rows: 30,
+    cwd: process.cwd(),
+    env: process.env as any
+  });
+
+  // Terminal ka output frontend ko bhejo
+  ptyProcess.onData((data) => {
+    socket.emit("terminal-output", data);
+  });
+
+  // Frontend se aane wali commands terminal mein chalao
+  socket.on("terminal-input", (data) => {
+    ptyProcess.write(data);
+  });
+
+  socket.on("disconnect", () => {
+    ptyProcess.kill();
+  });
+});
