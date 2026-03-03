@@ -1331,28 +1331,36 @@ import { createClient } from '@supabase/supabase-js';
 const socket = io('http://localhost:3001');
 const supabase = createClient('https://kewbyppxdgxkwtelcxed.supabase.co', 'sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD');
 
-// 1. Terminal Component (Jo aapne pucha)
 const PredatorTerminal = () => {
   const terminalRef = useRef(null);
+  const terminalInstance = useRef(null);
 
   useEffect(() => {
+    // Sirf ek baar initialize karein
+    if (terminalInstance.current) return;
+
     const term = new Terminal({
       cursorBlink: true,
-      theme: { background: '#000000', foreground: '#00ff00' },
-      fontFamily: 'Courier New',
-      fontSize: 14,
+      theme: { background: '#000000', foreground: '#00ff00' }
     });
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    
+    if (terminalRef.current) {
+      term.open(terminalRef.current);
+      setTimeout(() => fitAddon.fit(), 100);
+    }
 
-    useEffect(() => {
-  // ... existing term setup
-  if (terminalRef.current) {
-    term.open(terminalRef.current);
-    // 100ms ka wait taaki UI render ho jaye phir fit ho
-    setTimeout(() => fitAddon.fit(), 100); 
-  }
-  // ...
-}, []);
+    socket.on('terminal-output', (data) => term.write(data));
+    term.onData((data) => socket.emit('terminal-input', data));
+    
+    terminalInstance.current = term;
 
+    return () => { term.dispose(); };
+  }, []);
+
+  return <div ref={terminalRef} className="h-80 w-full" />;
+};
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     
