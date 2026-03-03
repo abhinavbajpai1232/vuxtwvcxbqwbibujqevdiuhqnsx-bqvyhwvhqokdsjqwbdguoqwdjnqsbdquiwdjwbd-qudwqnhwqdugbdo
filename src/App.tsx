@@ -1319,3 +1319,136 @@ export const TerminalComponent = () => {
     </div>
   );
 }
+
+import React, { useEffect, useRef, useState } from 'react';
+import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
+import 'xterm/css/xterm.css';
+import { io } from 'socket.io-client';
+import { createClient } from '@supabase/supabase-js';
+
+// --- CONFIGURATION ---
+const socket = io('http://localhost:3001');
+const supabase = createClient('https://kewbyppxdgxkwtelcxed.supabase.co', 'sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD');
+
+// 1. Terminal Component (Jo aapne pucha)
+const PredatorTerminal = () => {
+  const terminalRef = useRef(null);
+
+  useEffect(() => {
+    const term = new Terminal({
+      cursorBlink: true,
+      theme: { background: '#000000', foreground: '#00ff00' },
+      fontFamily: 'Courier New',
+      fontSize: 14,
+    });
+
+    useEffect(() => {
+  // ... existing term setup
+  if (terminalRef.current) {
+    term.open(terminalRef.current);
+    // 100ms ka wait taaki UI render ho jaye phir fit ho
+    setTimeout(() => fitAddon.fit(), 100); 
+  }
+  // ...
+}, []);
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    
+    if (terminalRef.current) {
+      term.open(terminalRef.current);
+      fitAddon.fit();
+      term.writeln('>>> PREDATOR SYSTEM TERMINAL LINKED...');
+      term.writeln('>>> READY FOR COMMANDS...');
+    }
+
+    // App.tsx mein terminal logic ke andar:
+if (terminalRef.current) {
+  term.open(terminalRef.current);
+  // Thoda wait karo taaki div render ho jaye
+  setTimeout(() => fitAddon.fit(), 100); 
+}
+    socket.on('terminal-output', (data) => term.write(data));
+    term.onData((data) => socket.emit('terminal-input', data));
+
+    return () => { term.dispose(); };
+  }, []);
+
+  return (
+    <div className="p-4 bg-black rounded-lg border border-green-900 mt-6 shadow-2xl">
+      <div className="flex justify-between items-center mb-2 border-b border-green-900 pb-1">
+         <span className="text-green-500 font-mono text-xs">STATION: KALI_REMOTE_SHELL_V1.0</span>
+         <span className="text-red-500 font-mono text-xs">● LIVE</span>
+      </div>
+      <div ref={terminalRef} className="h-80" />
+    </div>
+  );
+};
+
+// 2. Main App Component
+export default function App() {
+  const [lootBox, setLootBox] = useState([]);
+
+  useEffect(() => {
+    // Real-time Supabase Fetch (Loot Box update)
+    const fetchLoot = async () => {
+      const { data } = await supabase.table('loot').select('*').order('timestamp', { ascending: false });
+      if (data) setLootBox(data);
+    };
+    fetchLoot();
+
+    // Listen for new loot in real-time
+    const channel = supabase.channel('loot_db')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'loot' }, (payload) => {
+        setLootBox((prev) => [payload.new, ...prev]);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans">
+      <header className="mb-10">
+        <h1 className="text-4xl font-black tracking-tighter text-green-500">PYTHON_PREDATOR <span className="text-white text-sm font-mono opacity-50">v2.0</span></h1>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* LEFT SIDE: Stats & Loot */}
+        <section>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+            LIVE LOOT STREAM
+          </h2>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-zinc-800 text-zinc-400">
+                <tr>
+                  <th className="p-4">Target</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lootBox.map((item, idx) => (
+                  <tr key={idx} className="border-t border-zinc-800 hover:bg-zinc-800/50">
+                    <td className="p-4 font-mono text-blue-400">{item.target}</td>
+                    <td className="p-4 text-green-400">{item.status}</td>
+                    <td className="p-4 text-red-500 font-bold">{item.sqli_risk}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* RIGHT SIDE: Terminal Control */}
+        <section>
+          <h2 className="text-xl font-bold mb-4 uppercase tracking-widest text-zinc-500">Command Center</h2>
+          <PredatorTerminal />
+        </section>
+      </div>
+    </div>
+  );
+}
