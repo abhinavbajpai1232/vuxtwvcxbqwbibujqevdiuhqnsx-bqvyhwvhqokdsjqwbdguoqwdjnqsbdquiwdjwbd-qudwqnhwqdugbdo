@@ -13,17 +13,16 @@ def init_db():
     # Cloud mein table pehle se bani honi chahiye (SQL Editor use karein)
     print("[!] Cloud Database (Supabase) Connection Initialized.")
 
+
+    # database.py
 def save_loot(target, status, sqli_risk):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    # Data structure jo Supabase table mein jayega
-    data = {
-        "target": target,
-        "status": status,
-        "sqli_risk": sqli_risk,
-        "timestamp": timestamp
-    }
-    
+    # ... existing code ...
+    try:
+        supabase.table("loot").insert(data).execute()
+        print(f"[+] SYNCED_TO_SUPABASE: {target}")
+    except Exception as e:
+        print(f"[-] ERROR: {e}")
+
     try:
         # 'loot' table mein data insert karna
         supabase.table("loot").insert(data).execute()
