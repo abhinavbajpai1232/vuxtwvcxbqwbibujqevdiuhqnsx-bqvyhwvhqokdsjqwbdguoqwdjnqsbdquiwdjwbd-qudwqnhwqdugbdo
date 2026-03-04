@@ -1,26 +1,42 @@
 import os
 from datetime import datetime
-from supabase import create_client, Client
 
-# Credentials
+# 1. Sabse pehle try-except lagao taaki Pylance error na de
+try:
+    from supabase import create_client, Client
+except ImportError:
+    print("[-] Error: supabase library not installed. Run 'pip install supabase'")
+
+# 2. Setup Credentials
 url = "https://kewbyppxdgxkwtelcxed.supabase.co"
 key = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
-supabase: Client = create_client(url, key)
+
+# 3. Client Initialize karein
+try:
+    supabase: Client = create_client(url, key)
+except NameError:
+    print("[-] Supabase client could not be initialized.")
 
 def save_loot(target, status, sqli_risk):
-    # Dictionary banana zaroori hai (Fixes "data not defined")
+    """
+    Saves scan results to Supabase 'loot' table.
+    """
+    # 4. 'data' variable define karna zaroori hai (Fixes "data is not defined")
     data = {
-        "target": target,
-        "status": status,
-        "sqli_risk": sqli_risk,
+        "target": str(target),
+        "status": str(status),
+        "sqli_risk": str(sqli_risk),
         "timestamp": datetime.now().isoformat()
     }
     
     try:
-        # Proper indentation (4 spaces)
+        # 5. Proper Indentation (Exactly 8 spaces inside try)
         response = supabase.table("loot").insert(data).execute()
-        print(f"[+] Loot Saved: {target}")
+        print(f"[+] Loot successfully saved for: {target}")
         return response
     except Exception as e:
-        print(f"[-] Supabase Error: {e}")
+        print(f"[-] Supabase Insertion Error: {e}")
         return None
+
+# Test line (Optional - use only for debugging)
+# save_loot("test.com", "Active", "High")
