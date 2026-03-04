@@ -12,53 +12,40 @@ const supabase = createClient(
   "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
 );
 
-// 2. Terminal Component (Double-boot Protection)
 const PredatorTerminal = () => {
-  const terminalRef = useRef<HTMLDivElement>(null);
-  const terminalInstance = useRef<Terminal | null>(null);
+  const terminalRef = useRef(null);
+  const terminalInstance = useRef(null);
 
   useEffect(() => {
-    if (terminalInstance.current) return; // Prevent duplicate terminal
+    if (terminalInstance.current) return; // Duplicate prevent karne ke liye
 
     const term = new Terminal({
       cursorBlink: true,
-      theme: { background: '#000000', foreground: '#00ff00' },
-      fontFamily: 'Courier New',
-      fontSize: 14
+      theme: { background: '#000000', foreground: '#00ff00' }
     });
-
+    
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
 
     if (terminalRef.current) {
       term.open(terminalRef.current);
-      setTimeout(() => {
-        try { fitAddon.fit(); } catch (e) { console.error(e); }
-      }, 200); 
-      term.writeln('>>> PREDATOR SYSTEM ONLINE...');
+      setTimeout(() => fitAddon.fit(), 100); // Fit addon fix
     }
-
-    socket.on('terminal-output', (data: string) => term.write(data));
-    term.onData((data) => socket.emit('terminal-input', data));
 
     terminalInstance.current = term;
 
+    // Server output listen karna
+    socket.on('terminal-output', (data) => term.write(data));
+    term.onData((data) => socket.emit('terminal-input', data));
+
     return () => {
-      socket.off('terminal-output');
       term.dispose();
+      socket.off('terminal-output');
       terminalInstance.current = null;
     };
   }, []);
 
-  return (
-    <div className="p-4 bg-black rounded-lg border border-green-900 shadow-2xl">
-      <div className="flex justify-between items-center mb-2 border-b border-green-900 pb-1">
-         <span className="text-green-500 font-mono text-xs tracking-widest uppercase">Remote_Shell_v1.0</span>
-         <span className="text-red-500 font-mono text-xs animate-pulse">● LIVE</span>
-      </div>
-      <div ref={terminalRef} className="h-80 w-full" />
-    </div>
-  );
+  return <div ref={terminalRef} className="h-80 w-full bg-black" />;
 };
 
 // 3. Main Dashboard
