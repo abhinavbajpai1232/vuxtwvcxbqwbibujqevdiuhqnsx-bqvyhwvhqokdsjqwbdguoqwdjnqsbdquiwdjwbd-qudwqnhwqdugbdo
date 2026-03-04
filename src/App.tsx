@@ -5,7 +5,7 @@ import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
-// 1. Config (Correct URL format)
+// 1. Config (Correct URL format from your doc)
 const socket = io('http://localhost:3001');
 const supabase = createClient(
   "https://kewbyppxdgxkwtelcxed.supabase.co", 
@@ -32,7 +32,9 @@ const PredatorTerminal = () => {
 
     if (terminalRef.current) {
       term.open(terminalRef.current);
-      setTimeout(() => fitAddon.fit(), 200); // Wait for UI to render
+      setTimeout(() => {
+        try { fitAddon.fit(); } catch (e) { console.error(e); }
+      }, 200); 
       term.writeln('>>> PREDATOR SYSTEM ONLINE...');
     }
 
@@ -51,7 +53,7 @@ const PredatorTerminal = () => {
   return (
     <div className="p-4 bg-black rounded-lg border border-green-900 shadow-2xl">
       <div className="flex justify-between items-center mb-2 border-b border-green-900 pb-1">
-         <span className="text-green-500 font-mono text-xs tracking-widest">KALI_REMOTE_SHELL</span>
+         <span className="text-green-500 font-mono text-xs tracking-widest uppercase">Remote_Shell_v1.0</span>
          <span className="text-red-500 font-mono text-xs animate-pulse">● LIVE</span>
       </div>
       <div ref={terminalRef} className="h-80 w-full" />
@@ -86,6 +88,7 @@ export default function App() {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Loot Stream Table */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
           <div className="p-4 border-b border-zinc-800 bg-zinc-800/50 font-bold text-xs uppercase tracking-widest text-zinc-400">
             Live Loot Stream
@@ -102,7 +105,7 @@ export default function App() {
               {lootBox.map((item, idx) => (
                 <tr key={idx} className="border-t border-zinc-800 hover:bg-zinc-800/30 transition-colors">
                   <td className="p-4 font-mono text-blue-400">{item.target}</td>
-        <td className="p-4 text-green-400">{item.status || 'Active'}</td>
+                  <td className="p-4 text-green-400">{item.status || 'Active'}</td>
                   <td className="p-4 text-red-500 font-bold">{item.sqli_risk}</td>
                 </tr>
               ))}
@@ -110,6 +113,7 @@ export default function App() {
           </table>
         </div>
 
+        {/* Terminal Control */}
         <PredatorTerminal />
       </div>
     </div>
