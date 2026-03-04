@@ -102,4 +102,16 @@ export default function App() {
               {lootBox.map((item, idx) => (
                 <tr key={idx} className="border-t border-zinc-800 hover:bg-zinc-800/30 transition-colors">
                   <td className="p-4 font-mono text-blue-400">{item.target}</td>
-                  <td className="p-4 text
+        <td className="p-4 text-green-400">{item.status || 'Active'}</td>
+                  <td className="p-4 text-red-500 font-bold">{item.sqli_risk}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <PredatorTerminal />
+      </div>
+    </div>
+  );
+}
