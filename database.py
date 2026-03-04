@@ -1,62 +1,48 @@
-import os
 from datetime import datetime, timezone
-from typing import Optional
 
 try:
-    from supabase import create_client, Client
-    from supabase.lib.client_options import ClientOptions
+    from supabase import create_client
 except ImportError:
-    raise ImportError("Supabase library not installed. Run: pip install supabase")
+    raise ImportError("Install supabase first: pip install supabase")
 
 
 # ==============================
-# Hardcoded Credentials (As Requested)
+# Hardcoded Credentials
 # ==============================
 
-SUPABASE_URL: str = "https://kewbyppxdgxkwtelcxed.supabase.co"
-SUPABASE_KEY: str = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
+SUPABASE_URL = "https://kewbyppxdgxkwtelcxed.supabase.co"
+SUPABASE_KEY = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
 
 
 # ==============================
-# Supabase Client Initialization
+# Initialize Client
 # ==============================
 
 try:
-    supabase: Client = create_client(
-        SUPABASE_URL,
-        SUPABASE_KEY,
-        options=ClientOptions(
-            auto_refresh_token=True,
-            persist_session=False,
-        ),
-    )
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 except Exception as e:
-    raise RuntimeError(f"Failed to initialize Supabase client: {e}")
+    raise RuntimeError(f"Supabase initialization failed: {e}")
 
 
 # ==============================
-# Database Operation
+# Save Function
 # ==============================
 
-def save_loot(target: str, status: str, sqli_risk: str) -> dict:
-    """
-    Inserts scan result into 'loot' table.
-    """
-
+def save_loot(target, status, sqli_risk):
     payload = {
-        "target": target.strip(),
-        "status": status.strip(),
-        "sqli_risk": sqli_risk.strip(),
+        "target": str(target).strip(),
+        "status": str(status).strip(),
+        "sqli_risk": str(sqli_risk).strip(),
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
     try:
         response = supabase.table("loot").insert(payload).execute()
 
-        if not response.data:
-            raise RuntimeError("Insertion returned empty response.")
-
-        return response.data
+        if response.data:
+            return response.data
+        else:
+            raise RuntimeError("Insert failed. Empty response returned.")
 
     except Exception as e:
         raise RuntimeError(f"Supabase insertion failed: {e}")
