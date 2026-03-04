@@ -14,8 +14,8 @@ key = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
 # 3. Client Initialize karein
 try:
     supabase: Client = create_client(url, key)
-except NameError:
-    print("[-] Supabase client could not be initialized.")
+except Exception as e:
+    print(f"[-] Supabase initialization failed: {e}")
 
 def save_loot(target, status, sqli_risk):
     """
@@ -30,13 +30,10 @@ def save_loot(target, status, sqli_risk):
     }
     
     try:
-        # 5. Proper Indentation (Exactly 8 spaces inside try)
+        # 5. Proper Indentation (Exactly 4 spaces inside try)
         response = supabase.table("loot").insert(data).execute()
         print(f"[+] Loot successfully saved for: {target}")
         return response
     except Exception as e:
         print(f"[-] Supabase Insertion Error: {e}")
         return None
-
-# Test line (Optional - use only for debugging)
-# save_loot("test.com", "Active", "High")
