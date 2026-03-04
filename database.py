@@ -1,39 +1,62 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Optional
 
-# 1. Sabse pehle try-except lagao taaki Pylance error na de
 try:
     from supabase import create_client, Client
+    from supabase.lib.client_options import ClientOptions
 except ImportError:
-    print("[-] Error: supabase library not installed. Run 'pip install supabase'")
+    raise ImportError("Supabase library not installed. Run: pip install supabase")
 
-# 2. Setup Credentials
-url = "https://kewbyppxdgxkwtelcxed.supabase.co"
-key = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
 
-# 3. Client Initialize karein
+# ==============================
+# Hardcoded Credentials (As Requested)
+# ==============================
+
+SUPABASE_URL: str = "https://kewbyppxdgxkwtelcxed.supabase.co"
+SUPABASE_KEY: str = "sb_publishable_vCN82fw_sIyUTqwjjNV36Q_Gs-u7bXD"
+
+
+# ==============================
+# Supabase Client Initialization
+# ==============================
+
 try:
-    supabase: Client = create_client(url, key)
+    supabase: Client = create_client(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        options=ClientOptions(
+            auto_refresh_token=True,
+            persist_session=False,
+        ),
+    )
 except Exception as e:
-    print(f"[-] Supabase initialization failed: {e}")
+    raise RuntimeError(f"Failed to initialize Supabase client: {e}")
 
-def save_loot(target, status, sqli_risk):
+
+# ==============================
+# Database Operation
+# ==============================
+
+def save_loot(target: str, status: str, sqli_risk: str) -> dict:
     """
-    Saves scan results to Supabase 'loot' table.
+    Inserts scan result into 'loot' table.
     """
-    # 4. 'data' variable define karna zaroori hai (Fixes "data is not defined")
-    data = {
-        "target": str(target),
-        "status": str(status),
-        "sqli_risk": str(sqli_risk),
-        "timestamp": datetime.now().isoformat()
+
+    payload = {
+        "target": target.strip(),
+        "status": status.strip(),
+        "sqli_risk": sqli_risk.strip(),
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
-    
+
     try:
-        # 5. Proper Indentation (Exactly 4 spaces inside try)
-        response = supabase.table("loot").insert(data).execute()
-        print(f"[+] Loot successfully saved for: {target}")
-        return response
+        response = supabase.table("loot").insert(payload).execute()
+
+        if not response.data:
+            raise RuntimeError("Insertion returned empty response.")
+
+        return response.data
+
     except Exception as e:
-        print(f"[-] Supabase Insertion Error: {e}")
-        return None
+        raise RuntimeError(f"Supabase insertion failed: {e}")
