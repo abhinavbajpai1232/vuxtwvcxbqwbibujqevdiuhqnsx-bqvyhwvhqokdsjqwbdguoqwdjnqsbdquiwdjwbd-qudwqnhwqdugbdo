@@ -8,50 +8,50 @@ import cors from "cors";
 const app = express();
 app.use(cors());
 
+// 1. Ek hi HTTP Server banayein
 const httpServer = createServer(app);
-// Yahan "io" define ho raha hai
-const io = new Server(httpServer, { cors: { origin: "*" } });
 
+// 2. Sirf EK BAAR Socket.io setup karein (Port 3001 ke liye)
+const io = new Server(httpServer, { 
+  cors: { origin: "*" } 
+});
+
+const PORT = 3001;
+
+// 3. Connection Logic (Terminal + Logs)
 io.on("connection", (socket) => {
+  console.log("[SOCKET.IO] Client connected to Predator Bridge");
+
+  // OS ke hisaab se shell select karein
   const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+  
   const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
+    cols: 80,
+    rows: 24,
     cwd: process.cwd(),
     env: process.env as any
   });
 
-  ptyProcess.onData((data) => socket.emit("terminal-output", data));
-  socket.on("terminal-input", (data) => ptyProcess.write(data));
-  socket.on("disconnect", () => ptyProcess.kill());
+  // Terminal output frontend ko bhejna
+  ptyProcess.onData((data) => {
+    socket.emit("terminal-output", data);
+  });
+
+  // Frontend se command receive karna
+  socket.on("terminal-input", (data) => {
+    if (ptyProcess) {
+      ptyProcess.write(data);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("[SOCKET.IO] Client disconnected");
+    ptyProcess.kill();
+  });
 });
 
-// Port 3001 busy ho sakta hai, isliye hum check karenge
-const PORT = 3001;
-httpServer.listen(PORT, () => console.log(`🚀 Predator Server: http://localhost:${PORT}`));
-// Socket.io Setup ke pass check karein:
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
-
-// AB YE KAAM KAREGA:
-io.on("connection", (socket) => { 
-  console.log("[SOCKET.IO] Client connected");
-  // ... rest of your code
-});
-
-// 1. Pehle server banayein
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-// 2. Sirf EK BAAR Socket.io setup karein
-// Is line ko check karein, agar do baar hai toh ek delete kar dein
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
-
-// 3. Connection logic
-io.on("connection", (socket) => {
-  console.log("[SOCKET.IO] Client connected");
-  // ... baaki terminal ya scanner ka logic
+// 4. Server Start
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Predator Server Running on: http://localhost:${PORT}`);
 });
