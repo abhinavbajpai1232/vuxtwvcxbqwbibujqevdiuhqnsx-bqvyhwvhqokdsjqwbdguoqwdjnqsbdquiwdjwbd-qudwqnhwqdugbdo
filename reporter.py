@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import sqlite3
 import os
 import datetime
 
 def generate_html_report():
+=======
+from fpdf import FPDF
+import sqlite3
+import os
+
+def generate_pdf_report():
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00
     db_path = os.path.join(os.path.dirname(__file__), 'predator_loot.db')
     if not os.path.exists(db_path):
         print("ERROR:Database not found")
@@ -13,6 +21,7 @@ def generate_html_report():
     cursor.execute("SELECT * FROM loot")
     rows = cursor.fetchall()
 
+<<<<<<< HEAD
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -68,11 +77,34 @@ def generate_html_report():
     """
 
     for row in rows:
+=======
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Title
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt="PREDATOR VULNERABILITY REPORT", ln=True, align='C')
+    pdf.ln(10)
+
+    # Table Headers
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(80, 10, "Target URL", 1)
+    pdf.cell(25, 10, "Status", 1)
+    pdf.cell(25, 10, "SQLi Risk", 1)
+    pdf.cell(50, 10, "Timestamp", 1)
+    pdf.ln()
+
+    # Data Rows
+    pdf.set_font("Arial", size=8)
+    for row in rows:
+        # row[1] is target, row[2] is status, row[3] is sqli_risk, row[4] is timestamp
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00
         target = str(row[1])
         status = str(row[2])
         risk = str(row[3])
         ts = str(row[4])
         
+<<<<<<< HEAD
         html_content += f"""
                 <tr>
                     <td>{target}</td>
@@ -94,9 +126,25 @@ def generate_html_report():
     with open(report_name, "w") as f:
         f.write(html_content)
         
+=======
+        # Multi-cell for target if it's too long? 
+        # For simplicity we just truncate or use a smaller font
+        pdf.cell(80, 10, (target[:45] + '..') if len(target) > 45 else target, 1)
+        pdf.cell(25, 10, status, 1)
+        pdf.cell(25, 10, risk, 1)
+        pdf.cell(50, 10, ts, 1)
+        pdf.ln()
+
+    report_name = "vulnerability_report.pdf"
+    pdf.output(report_name)
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00
     print(f"REPORT_GENERATED:{report_name}")
     conn.close()
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     generate_html_report()
 
+=======
+    generate_pdf_report()
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00

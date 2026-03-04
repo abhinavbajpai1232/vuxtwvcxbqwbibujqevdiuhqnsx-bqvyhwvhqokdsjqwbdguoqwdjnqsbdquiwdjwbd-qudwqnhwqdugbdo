@@ -73,7 +73,16 @@ def check_sqli(url, headers=None, proxies=None):
                 break
         except:
             pass
+<<<<<<< HEAD
             
+=======
+
+    # scan_worker function mein jahan VULN_DETECTED print ho raha hai:
+if vuln:
+    # SQLi ya RCE milte hi Supabase mein save karein
+    save_loot(vuln['url'], f"VULN_{vuln['type']}", f"Param: {vuln['param']} | Payload: {vuln['payload']}")
+
+>>>>>>> 1aaf0d9de456e45b6d0102d35ef9f9dceb34bf00
     if vulnerable:
         print(f"SQLI_VULN:TRUE|URL:{url}")
         save_loot(url, "200 OK", "HIGH")
