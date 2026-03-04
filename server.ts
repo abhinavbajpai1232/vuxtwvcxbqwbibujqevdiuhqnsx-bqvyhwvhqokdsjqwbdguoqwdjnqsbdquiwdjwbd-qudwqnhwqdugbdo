@@ -28,3 +28,30 @@ io.on("connection", (socket) => {
 // Port 3001 busy ho sakta hai, isliye hum check karenge
 const PORT = 3001;
 httpServer.listen(PORT, () => console.log(`🚀 Predator Server: http://localhost:${PORT}`));
+// Socket.io Setup ke pass check karein:
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// AB YE KAAM KAREGA:
+io.on("connection", (socket) => { 
+  console.log("[SOCKET.IO] Client connected");
+  // ... rest of your code
+});
+
+// 1. Pehle server banayein
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// 2. Sirf EK BAAR Socket.io setup karein
+// Is line ko check karein, agar do baar hai toh ek delete kar dein
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// 3. Connection logic
+io.on("connection", (socket) => {
+  console.log("[SOCKET.IO] Client connected");
+  // ... baaki terminal ya scanner ka logic
+});

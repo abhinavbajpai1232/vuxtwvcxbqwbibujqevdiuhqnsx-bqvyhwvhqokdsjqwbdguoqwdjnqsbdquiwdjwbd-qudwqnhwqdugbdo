@@ -1460,3 +1460,39 @@ export default function App() {
     </div>
   );
 }
+
+const PredatorTerminal = () => {
+  const terminalRef = useRef(null);
+  const terminalInstance = useRef(null);
+
+  useEffect(() => {
+    // Agar terminal pehle se hai toh dobara mat banao
+    if (terminalInstance.current) return;
+
+    const term = new Terminal({
+      cursorBlink: true,
+      theme: { background: '#000000', foreground: '#00ff00' }
+    });
+    
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+
+    if (terminalRef.current) {
+      term.open(terminalRef.current);
+      // Fit ko thoda delay ke saath chalayein
+      setTimeout(() => fitAddon.fit(), 100);
+    }
+
+    terminalInstance.current = term;
+
+    // Listeners
+    socket.on('terminal-output', (data) => term.write(data));
+
+    return () => {
+      term.dispose();
+      socket.off('terminal-output');
+    };
+  }, []); // Empty array important hai!
+
+  return <div ref={terminalRef} className="h-80 w-full bg-black" />;
+};
